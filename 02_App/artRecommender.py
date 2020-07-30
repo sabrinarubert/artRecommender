@@ -7,7 +7,7 @@ import math
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, MATCH, ALL
 import base64
 
 # import SQL Libraries
@@ -99,8 +99,8 @@ def getListOfRemmonendations(artwork):
     global artFeatures
     result = pd.DataFrame(columns=['indice', 'distance'])
     
-    distances, indices = model_knn.kneighbors(artwork, n_neighbors=len(artFeatures))
-    #distances, indices = model_knn.kneighbors(artwork, n_neighbors=10)
+    #distances, indices = model_knn.kneighbors(artwork, n_neighbors=len(artFeatures))
+    distances, indices = model_knn.kneighbors(artwork, n_neighbors=10)
 
     for i in range(1, len(distances[0])):
         distance =  distances[0][i]   
@@ -120,48 +120,57 @@ def combineArtworks(artworks):
     return result
 
 # -----------------------------------
-# Import data from model here
+# html components
 
-# -----------------------------------
-# App layout choose
-def buildLayoutChoose():
+back_button = html.Div(
+    className="button_row_box",
+        children = [
+            html.Button('try again', className="grey_button", id="back")
+        ],
+        id={
+            'type': 'back_button',
+            'index': 'buttons'
+        }
+    )
 
-    header = html.Div(
+like_button = html.Div(
+    className="button_row_box",
+        children = [
+            html.Button("find artworks i like", className="green_button", id="artwork_i_like")
+        ],
+        id={
+            'type': 'like_button',
+            'index': 'buttons'
+        }
+    )
+
+dont_like_button = html.Div(
+    className="button_row_box",
+        children = [
+            html.Button("find artworks i don't like", className="red_button", id="artwork_i_dont_like")
+        ],
+        id={
+            'type': 'dont_like_button',
+            'index': 'buttons'
+        }
+    )
+
+header = html.Div(
                     id="header",
                     children=[
-                        html.H2(children="find art you don't like"),
+                        html.H2(children="find art you like"),
                         html.H3(
-                            id="description",
-                            children="please choose five pictures that you like the most. the recommender will then suggest three artworks similiar to those that you have chosen.",
+                            id="description"
                         ),
                     ],
                 )
 
-    buttons = html.Div(
-            
-            children=[
-                html.Div(
-                    className="button_row_box",
-                    children = [
-                        html.Button('find artworks i like', className="green_button", id="artwork_i_like")
-                    ]
-                ),
-                html.Div(
-                    className="button_row_box",
-                    children = [
-                        html.Button("find artworks i don't like", className="red_button", id="artwork_i_dont_like")
-                    ]
-                ),
-                html.Div(
-                    className="button_row_box",
-                    children = [
-                        html.Button('find more art you like', className="hidden_button", id="back")
-                    ]
-                )
-        ])
+# -----------------------------------
+# content functions
 
-    layout = [header]
+def buildContentChoose():
 
+    content = []
     randomImages = loadRandomImages() 
     images = len(randomImages)
 
@@ -190,51 +199,30 @@ def buildLayoutChoose():
                         children=[
                             html.Img(src = imagePath),
                             dcc.Checklist(
-                                    id="checkbox_"+str(indexOfImage),
                                     className="checkbox",
                                     options=[{"label": " ", "value": artwork_id}],
                                     value=[],
+                                    id={
+                                        'type': 'checkbox',
+                                        'index': "str(indexOfImage)"
+                                    }
                                 )
                     ])
             
             rowChildren.append(image)
 
         imageRow = html.Div(className="row",children=rowChildren)
-        layout.append(imageRow)
+        content.append(imageRow)
 
-    layout.append(html.Br())
-    layout.append(buttons)
-    return layout
+    return content
 
 # -----------------------------------
 # App layout display
-def buildLayoutDisplay(neighbors):
+def buildContentDisplay(neighbors):
     global dbConnection
 
-    header = html.Div(
-                    id="header",
-                    children=[
-                        html.H2(children="find art you don't like"),
-                        html.H3(
-                            id="description",
-                            children="Das empfehlen wir dir:",
-                        ),
-                    ],
-                )
-
-    buttons = html.Div(
-            
-            children=[
-                html.Div(
-                    className="button_row_box",
-                    children = [
-                        html.Button('find more art you like', className="grey_button", id="back")
-                    ]
-                )
-        ])
-
-    layout = [header]
-
+    content = []
+    
     # get artworks (neighbors)
     for index, neighbor in neighbors.iterrows():
     
@@ -289,74 +277,79 @@ def buildLayoutDisplay(neighbors):
                     children=details)
             ])
 
-        layout.append(imageRow)
+        content.append(imageRow)
 
-    layout.append(html.Br())
-    layout.append(buttons)
-    return layout
+    return content
 
 # -----------------------------------
 # start application
-
-layout_choose = buildLayoutChoose()
-app.layout = html.Div(id="root",children=layout_choose)
+app.layout = html.Div(id="root",children=[header, html.Div(id="content"), html.Br(),  html.Div(id="buttons")])
 
 # -----------------------------------
 # call backs
-
-@app.callback(Output('root', 'children'),
-            [Input('artwork_i_like', 'n_clicks'), Input('artwork_i_dont_like', 'n_clicks'), Input('back', 'n_clicks')],
-            [State('checkbox_0', 'value'),
-            State('checkbox_1', 'value'),
-            State('checkbox_2', 'value'),
-            State('checkbox_3', 'value'),
-            State('checkbox_4', 'value'),
-            State('checkbox_5', 'value'),
-            State('checkbox_6', 'value'),
-            State('checkbox_7', 'value'),
-            State('checkbox_8', 'value'),
-            State('checkbox_9', 'value'),
-            State('checkbox_10', 'value'),
-            State('checkbox_11', 'value')])
-def update_output(artwork_i_like, artwork_i_dont_like,  back, checkbox_0, checkbox_1, checkbox_2, checkbox_3, checkbox_4, checkbox_5, checkbox_6, checkbox_7, checkbox_8, checkbox_9, checkbox_10, checkbox_11):
+@app.callback(
+            [
+                Output('description', 'children'),
+                Output('content', 'children'),
+                Output('buttons', 'children')
+            ],
+            [
+                Input({'type': 'back_button', 'index': ALL}, 'n_clicks'),
+                Input({'type': 'like_button', 'index': ALL}, 'n_clicks'),
+                Input({'type': 'dont_like_button', 'index': ALL}, 'n_clicks'),
+            ],
+            [State({'type': 'checkbox', 'index': ALL}, 'value')])
+def update_output(back_button_clicked, like_button_clicked, dont_like_button_clicked, listOfValues):
     global layout_choose
     global layout_display
     global state
 
     # collect list of favorite Artworks
-    listOfValues = [checkbox_0, checkbox_1, checkbox_2, checkbox_3, checkbox_4, checkbox_5, checkbox_6, checkbox_7, checkbox_8, checkbox_9, checkbox_10, checkbox_11]
     favoriteArtworks = []
     for checkBox in listOfValues:
         if (len(checkBox) >0):
             favoriteArtworks.append(checkBox[0])
 
-    if (artwork_i_like):
+    content = []
+
+    if (len(like_button_clicked) > 0 and like_button_clicked[0] == 1):
         
-        combinedRemmonendations = combineArtworks(favoriteArtworks)
-        combinedRemmonendations["distance"] = 1- combinedRemmonendations["distance"]
-        combinedRemmonendations.reindex()
-        neighbors = combinedRemmonendations.groupby(['indice']).sum().sort_values("distance", ascending = False).head(10)
+        combinedRecommendations = combineArtworks(favoriteArtworks)
+        combinedRecommendations["distance"] = 1- combinedRecommendations["distance"]
+        combinedRecommendations.reindex()
+        neighbors = combinedRecommendations.groupby(['indice']).sum().sort_values("distance", ascending = False).head(10)
 
-        layout_display =  buildLayoutDisplay(neighbors)
+        content =  buildContentDisplay(neighbors)
         state = "display"
 
-    elif (artwork_i_dont_like):
+    elif (len(dont_like_button_clicked) > 0 and dont_like_button_clicked[0] == 1):
 
-        combinedRemmonendations = combineArtworks(favoriteArtworks)
-        combinedRemmonendations["distance"] = 1- combinedRemmonendations["distance"]
-        combinedRemmonendations.reindex()
-        neighbors = combinedRemmonendations.groupby(['indice']).sum().sort_values("distance", ascending = True).head(3)
+        combinedRecommendations = combineArtworks(favoriteArtworks)
+        combinedRecommendations["distance"] = 1- combinedRecommendations["distance"]
+        combinedRecommendations.reindex()
+        neighbors = combinedRecommendations.groupby(['indice']).sum().sort_values("distance", ascending = True).head(10)
 
-        layout_display =  buildLayoutDisplay(neighbors)
+        content =  buildContentDisplay(neighbors)
         state = "display"
-    elif (back):
-        layout_display =  buildLayoutChoose()
+    
+    elif (len(back_button_clicked) > 0 and back_button_clicked[0] == 1):
+        content =  buildContentChoose()
+        state = "choose"
+    else:
+        content =  buildContentChoose()
         state = "choose"
 
+    buttons = []
+
     if (state == "choose"):
-        return layout_choose
+        description="please choose a few pictures that you like. the recommender will then suggest artworks similiar to those that you have chosen."
+        buttons = [like_button]
+
     elif (state == "display"):
-        return layout_display
+        description="i am sure that you like those pictures:"
+        buttons = [back_button]
+
+    return description, content, buttons
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
