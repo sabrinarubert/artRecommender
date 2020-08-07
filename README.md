@@ -21,7 +21,7 @@ That is why I decided to concentrate on that kinf of neglected market and try to
 How to make art more accessible to a wider audience, and especially more appealing to younger people?
 
 ## Datset
-I got all relevant data from the [Artsy API].(https://developers.artsy.net)
+I got all relevant data from the [Artsy API](https://developers.artsy.net).
 For the art recommender I needed data about the artists, the artworks and the genes.
 
 Genes: Artsy innitiated the Art Genome Project, a classification system and technological framework that powers Artsy. It maps characterstics (Artsy calls them "genes") that connect artists, artowroks, architecture, and design objects across history. There are currently over 1,000 characteristics in the Art Genome Project, including art historical movements, subject matter, and formal qualities.
