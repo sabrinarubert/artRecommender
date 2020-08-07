@@ -21,7 +21,12 @@ That is why I decided to concentrate on that kinf of neglected market and try to
 How to make art more accessible to a wider audience, and especially more appealing to younger people?
 
 ## Datset
-I got all relevant data from the [Artsy API](https://developers.artsy.net)
+I got all relevant data from the [Artsy API].(https://developers.artsy.net)
+For the art recommender I needed data about the artists, the artworks and the genes.
+
+Genes: Artsy innitiated the Art Genome Project, a classification system and technological framework that powers Artsy. It maps characterstics (Artsy calls them "genes") that connect artists, artowroks, architecture, and design objects across history. There are currently over 1,000 characteristics in the Art Genome Project, including art historical movements, subject matter, and formal qualities.
+
+My final dataset consists of 1,033 genes and 30,000 artworks from the 7th century until the year 1917.
 
 ## Worflow
 The following workflow was implemented:
@@ -34,7 +39,9 @@ The following workflow was implemented:
 6. Creating the presentation
 
 ## Recommender System
+Using the described dataset about artists, artworks and genes I build a recommender system using the k-nearest neighbors algorithm. The basis of the recommender system are the different genes that are assigned to various artworks.
 
+The user chooses the artworks he/she likes most. The recommender then suggests artworks similar to the ones the user likes based on their characterstics.
 
 ## Conclusion
 The art recommender prototype:
@@ -49,15 +56,14 @@ Due to public rights it is not possible to access all artworks from the Artsy AP
 This repository is divided into four different folders.
 
 **00_Data**
-* All data files and data information are within this folder
+* All data files and data information are within this [folder](https://github.com/sabrinarubert/artRecommender/tree/master/00_Data)
 
 **01_Notebooks**
-* All notebooks for getting the various data from the Artsy API are found here
-* The final notebook for the art recommender: []()
+* All notebooks for getting the various data from the Artsy API are found [here](https://github.com/sabrinarubert/artRecommender/tree/master/01_Notebooks)
+* The final notebook for the art recommender: [art_recommender.ipynb](https://github.com/sabrinarubert/artRecommender/blob/master/01_Notebooks/art_recommender.ipynb)
 
 **02_App**
-* The code for the art recommender prototyp as well as all assets can be found here
-* Use this file to try out the art recommender: []()
+* The code for the art recommender prototype as well as all assets can be found [here](https://github.com/sabrinarubert/artRecommender/tree/master/02_App)
 
 **03_Presentation**
-* Google Slides: []()
+* Google Slides: [200731_ArtRecommender](https://github.com/sabrinarubert/artRecommender/blob/master/03_Presentation/200731_ArtRecommender.pdf)
